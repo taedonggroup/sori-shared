@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공명 (GONMYUNG) — AI 음악 엔진</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── 토큰 ── */
+    :root {
+      --abyss:     #000000;
+      --space:     #2B2D42;
+      --resonance: #F8F32B;
+      --stone:     #8D99AE;
+      --starlight: #FFFFFF;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--abyss);
+      color: var(--starlight);
+      font-family: 'Noto Sans KR', 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── 캔버스 배경 ── */
+    #bg-canvas {
+      position: fixed; inset: 0;
+      z-index: 0; pointer-events: none;
+    }
+
+    /* ── 메인 UI ── */
+    #app {
+      position: relative; z-index: 10;
+      max-width: 780px; margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+
+    .logo {
+      text-align: center; margin-bottom: 48px;
+    }
+    .logo-kr {
+      font-size: 13px; letter-spacing: 6px;
+      color: var(--stone); margin-bottom: 8px;
+    }
+    .logo-en {
+      font-size: 42px; font-weight: 900;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--resonance), #fff176);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .logo-sub {
+      font-size: 11px; letter-spacing: 4px;
+      color: var(--stone); margin-top: 6px;
+    }
+
+    /* ── 패널 ── */
+    .panel {
+      background: rgba(43,45,66,0.4);
+      border: 1px solid rgba(141,153,174,0.2);
+      border-radius: 2px;
+      padding: 28px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(12px);
+    }
+    .panel-title {
+      font-size: 10px; letter-spacing: 4px;
+      color: var(--resonance); margin-bottom: 20px;
+    }
+
+    /* ── 장르 그리드 ── */
+    .genre-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .genre-btn {
+      background: transparent;
+      border: 1px solid rgba(141,153,174,0.3);
+      color: var(--stone);
+      font-family: inherit; font-size: 11px;
+      padding: 10px 4px;
+      cursor: pointer; text-align: center;
+      transition: all 0.2s; border-radius: 1px;
+    }
+    .genre-btn:hover { border-color: var(--resonance); color: var(--starlight); }
+    .genre-btn.active {
+      border-color: var(--resonance);
+      background: rgba(248,243,43,0.08);
+      color: var(--resonance); font-weight: 700;
+    }
+
+    /* ── 슬라이더 ── */
+    .control-row { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
+    .control-label { font-size: 11px; color: var(--stone); letter-spacing: 2px; width: 80px; }
+    input[type=range] {
+      flex: 1; -webkit-appearance: none; height: 2px;
+      background: rgba(141,153,174,0.3); outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px;
+      background: var(--resonance); border-radius: 50%; cursor: pointer;
+    }
+    .control-value { font-size: 12px; color: var(--resonance); width: 40px; text-align: right; font-weight: 700; }
+
+    /* ── 생성 버튼 ── */
+    #generate-btn {
+      width: 100%; padding: 18px;
+      background: transparent;
+      border: 1px solid var(--resonance);
+      color: var(--resonance);
+      font-family: inherit; font-size: 13px; font-weight: 700;
+      letter-spacing: 4px; cursor: pointer;
+      transition: all 0.3s; border-radius: 1px;
+      margin-top: 8px;
+    }
+    #generate-btn:hover:not(:disabled) {
+      background: var(--resonance);
+      color: var(--abyss);
+    }
+    #generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── 로딩 화면 ── */
+    #loading-screen {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: var(--abyss);
+      flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    #loading-screen.active { display: flex; }
+
+    #loading-canvas { width: 300px; height: 300px; }
+
+    .loading-text {
+      margin-top: 40px; text-align: center;
+    }
+    .loading-step {
+      font-size: 13px; color: var(--stone);
+      letter-spacing: 1px; min-height: 20px;
+      transition: opacity 0.4s;
+    }
+    .loading-main-msg {
+      font-size: 15px; color: var(--starlight);
+      letter-spacing: 0.5px; margin-top: 8px;
+      font-weight: 300;
+    }
+    .loading-main-msg span { color: var(--resonance); font-weight: 700; }
+
+    .loading-progress {
+      width: 240px; height: 1px;
+      background: rgba(141,153,174,0.2);
+      margin: 24px auto 0; border-radius: 1px; overflow: hidden;
+    }
+    .loading-bar {
+      height: 100%; width: 0%;
+      background: var(--resonance);
+      transition: width 0.6s ease;
+      box-shadow: 0 0 8px var(--resonance);
+    }
+
+    /* ── 결과 패널 ── */
+    #result-panel { display: none; }
+    #result-panel.active { display: block; }
+
+    .preset-tag {
+      display: inline-block;
+      border: 1px solid var(--resonance);
+      color: var(--resonance);
+      font-size: 10px; letter-spacing: 3px;
+      padding: 4px 10px; margin-bottom: 20px;
+    }
+
+    .audio-group { margin-bottom: 20px; }
+    .audio-label {
+      font-size: 10px; letter-spacing: 3px;
+      color: var(--stone); margin-bottom: 8px;
+    }
+    .audio-label span { color: var(--resonance); }
+
+    audio {
+      width: 100%; height: 36px;
+      filter: invert(1) hue-rotate(180deg) sepia(0.5) saturate(3);
+    }
+
+    .stems-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+
+    .eq-bar-wrap { display: flex; gap: 6px; margin-top: 12px; align-items: flex-end; height: 40px; }
+    .eq-bar {
+      flex: 1; background: var(--resonance);
+      opacity: 0.7; border-radius: 1px;
+      transition: height 0.6s ease;
+    }
+    .eq-label { font-size: 9px; color: var(--stone); text-align: center; margin-top: 4px; letter-spacing: 1px; }
+
+    .reset-btn {
+      background: transparent; border: 1px solid rgba(141,153,174,0.3);
+      color: var(--stone); font-family: inherit;
+      font-size: 11px; letter-spacing: 3px;
+      padding: 12px 24px; cursor: pointer;
+      margin-top: 20px; transition: all 0.2s;
+    }
+    .reset-btn:hover { border-color: var(--stone); color: var(--starlight); }
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- 로딩 화면 -->
+<div id="loading-screen">
+  <canvas id="loading-canvas" width="300" height="300"></canvas>
+  <div class="loading-text">
+    <div class="loading-step" id="loading-step-text">초기화 중...</div>
+    <div class="loading-main-msg">
+      흩어진 조각들을 모아서<br>
+      <span>공명의 주파수</span>를 맞추는 중입니다.
+    </div>
+    <div class="loading-progress"><div class="loading-bar" id="loading-bar"></div></div>
+  </div>
+</div>
+
+<!-- 메인 UI -->
+<div id="app">
+  <div class="logo">
+    <div class="logo-kr">공명 엔진</div>
+    <div class="logo-en">GONMYUNG</div>
+    <div class="logo-sub">AI MUSIC ENGINE · GUIDED-AUTO PIPELINE</div>
+  </div>
+
+  <!-- 장르 선택 -->
+  <div class="panel">
+    <div class="panel-title">[ 01 ] 장르 선택 — 20 MASTERING PRESETS</div>
+    <div class="genre-grid" id="genre-grid"></div>
+  </div>
+
+  <!-- 파라미터 -->
+  <div class="panel">
+    <div class="panel-title">[ 02 ] 파라미터</div>
+    <div class="control-row">
+      <span class="control-label">길이 (초)</span>
+      <input type="range" id="duration" min="5" max="30" value="10" step="1">
+      <span class="control-value" id="duration-val">10s</span>
+    </div>
+    <div class="control-row">
+      <span class="control-label">공명 강도</span>
+      <input type="range" id="intensity" min="1" max="10" value="7" step="1">
+      <span class="control-value" id="intensity-val">7</span>
+    </div>
+  </div>
+
+  <!-- 생성 -->
+  <button id="generate-btn">▶ 공명 생성</button>
+
+  <!-- 결과 -->
+  <div class="panel" id="result-panel">
+    <div class="panel-title">[ 03 ] OUTPUT — FULL MIX + STEMS</div>
+    <div id="preset-tag" class="preset-tag"></div>
+
+    <div class="audio-group">
+      <div class="audio-label">FULL MIX <span>· 완성본</span></div>
+      <audio id="audio-full" controls src=""></audio>
+    </div>
+
+    <div class="audio-group">
+      <div class="audio-label">STEMS <span>· 분리 트랙 (Demucs)</span></div>
+      <div class="stems-grid">
+        <div>
+          <div class="audio-label">DRUMS</div>
+          <audio id="audio-drums" controls src=""></audio>
+        </div>
+        <div>
+          <div class="audio-label">BASS</div>
+          <audio id="audio-bass" controls src=""></audio>
+        </div>
+        <div>
+          <div class="audio-label">MELODY</div>
+          <audio id="audio-melody" controls src=""></audio>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="audio-label">EQ PROFILE</div>
+      <div class="eq-bar-wrap" id="eq-bars"></div>
+      <div style="display:flex;gap:6px;margin-top:4px;" id="eq-labels"></div>
+    </div>
+
+    <button class="reset-btn" onclick="resetUI()">↩ 다시 생성</button>
+  </div>
+</div>
+
+<script>
+// ── 상태 ──────────────────────────────────────────────────────────
+let selectedGenre = 'ambient';
+let presets = [];
+
+// ── 배경 파티클 ───────────────────────────────────────────────────
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+let bgParticles = [];
+
+function resizeBg() {
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+}
+
+function initBgParticles() {
+  bgParticles = Array.from({ length: 120 }, () => ({
+    x: Math.random() * bgCanvas.width,
+    y: Math.random() * bgCanvas.height,
+    r: Math.random() * 1.2 + 0.3,
+    vx: (Math.random() - 0.5) * 0.15,
+    vy: (Math.random() - 0.5) * 0.15,
+    alpha: Math.random() * 0.5 + 0.1,
+  }));
+}
+
+function animateBg() {
+  bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+  bgParticles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = bgCanvas.width;
+    if (p.x > bgCanvas.width) p.x = 0;
+    if (p.y < 0) p.y = bgCanvas.height;
+    if (p.y > bgCanvas.height) p.y = 0;
+    bgCtx.beginPath();
+    bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    bgCtx.fillStyle = `rgba(248,243,43,${p.alpha})`;
+    bgCtx.fill();
+  });
+  requestAnimationFrame(animateBg);
+}
+
+window.addEventListener('resize', () => { resizeBg(); initBgParticles(); });
+resizeBg(); initBgParticles(); animateBg();
+
+// ── 로딩 애니메이션 ───────────────────────────────────────────────
+const lc = document.getElementById('loading-canvas');
+const lCtx = lc.getContext('2d');
+let loadingParticles = [];
+let loadingPhase = 0; // 0=흩어짐 1=모임 2=공명
+let loadingAnim;
+
+function initLoadingParticles() {
+  loadingParticles = Array.from({ length: 80 }, (_, i) => {
+    const angle = (i / 80) * Math.PI * 2;
+    const dist = 80 + Math.random() * 60;
+    return {
+      x: 150 + Math.cos(angle) * dist + (Math.random() - 0.5) * 60,
+      y: 150 + Math.sin(angle) * dist + (Math.random() - 0.5) * 60,
+      tx: 150, ty: 150,
+      r: Math.random() * 2 + 1,
+      alpha: Math.random() * 0.6 + 0.3,
+      speed: Math.random() * 0.03 + 0.01,
+      angle: angle,
+      orbitR: 40 + Math.random() * 30,
+      phase: Math.random() * Math.PI * 2,
+    };
+  });
+}
+
+function animateLoading() {
+  lCtx.clearRect(0, 0, 300, 300);
+  const t = Date.now() * 0.001;
+
+  loadingParticles.forEach(p => {
+    if (loadingPhase === 0) {
+      // 흩어진 상태 — 천천히 중심으로 이동
+      p.x += (p.tx - p.x) * 0.012;
+      p.y += (p.ty - p.y) * 0.012;
+    } else if (loadingPhase === 1) {
+      // 공명 — 원형 궤도
+      const ox = 150 + Math.cos(p.angle + t * 1.2) * p.orbitR;
+      const oy = 150 + Math.sin(p.angle + t * 1.2) * p.orbitR;
+      p.x += (ox - p.x) * 0.05;
+      p.y += (oy - p.y) * 0.05;
+    } else {
+      // 폭발 후 수렴
+      const ox = 150 + Math.cos(p.angle + t * 2) * (p.orbitR * 0.3);
+      const oy = 150 + Math.sin(p.angle + t * 2) * (p.orbitR * 0.3);
+      p.x += (ox - p.x) * 0.08;
+      p.y += (oy - p.y) * 0.08;
+    }
+
+    // 파티클 그리기
+    const pulse = 0.7 + Math.sin(t * 3 + p.phase) * 0.3;
+    lCtx.beginPath();
+    lCtx.arc(p.x, p.y, p.r * pulse, 0, Math.PI * 2);
+    lCtx.fillStyle = `rgba(248,243,43,${p.alpha * pulse})`;
+    lCtx.fill();
+  });
+
+  // 중심 원 (공명 구체)
+  const glowSize = loadingPhase >= 1 ? 16 + Math.sin(t * 4) * 4 : 4 + (Date.now() % 3000) / 3000 * 8;
+  const grd = lCtx.createRadialGradient(150, 150, 0, 150, 150, glowSize * 2);
+  grd.addColorStop(0, 'rgba(248,243,43,0.9)');
+  grd.addColorStop(0.5, 'rgba(248,243,43,0.3)');
+  grd.addColorStop(1, 'rgba(248,243,43,0)');
+  lCtx.beginPath();
+  lCtx.arc(150, 150, glowSize * 2, 0, Math.PI * 2);
+  lCtx.fillStyle = grd;
+  lCtx.fill();
+
+  // 주파수 파형 (하단)
+  if (loadingPhase >= 1) {
+    lCtx.beginPath();
+    for (let x = 0; x < 300; x++) {
+      const amp = 8 + Math.sin(t * 5) * 4;
+      const y = 260 + Math.sin((x / 300) * Math.PI * 6 + t * 4) * amp;
+      x === 0 ? lCtx.moveTo(x, y) : lCtx.lineTo(x, y);
+    }
+    lCtx.strokeStyle = `rgba(248,243,43,${0.4 + Math.sin(t * 3) * 0.2})`;
+    lCtx.lineWidth = 1.5;
+    lCtx.stroke();
+  }
+
+  loadingAnim = requestAnimationFrame(animateLoading);
+}
+
+// ── 프리셋 로드 ────────────────────────────────────────────────────
+async function loadPresets() {
+  const res = await fetch('/api/presets');
+  presets = await res.json();
+  const grid = document.getElementById('genre-grid');
+  grid.innerHTML = '';
+  presets.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'genre-btn' + (p.genre === selectedGenre ? ' active' : '');
+    btn.textContent = p.name.split(' ')[0];
+    btn.title = p.name;
+    btn.onclick = () => {
+      selectedGenre = p.genre;
+      document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// ── 슬라이더 ──────────────────────────────────────────────────────
+document.getElementById('duration').oninput = e => {
+  document.getElementById('duration-val').textContent = e.target.value + 's';
+};
+document.getElementById('intensity').oninput = e => {
+  document.getElementById('intensity-val').textContent = e.target.value;
+};
+
+// ── 생성 ──────────────────────────────────────────────────────────
+document.getElementById('generate-btn').onclick = async () => {
+  const btn = document.getElementById('generate-btn');
+  btn.disabled = true;
+
+  // 로딩 시작
+  const ls = document.getElementById('loading-screen');
+  ls.classList.add('active');
+  initLoadingParticles();
+  loadingPhase = 0;
+  animateLoading();
+
+  const bar = document.getElementById('loading-bar');
+  const stepText = document.getElementById('loading-step-text');
+
+  try {
+    // 스텝 시뮬레이션
+    const steps = [
+      [10, "흩어진 조각들을 수집하는 중...", 0],
+      [25, "공명의 주파수를 맞추는 중입니다...", 0],
+      [40, `[MusicGen] ${selectedGenre} 음악 생성 중...`, 1],
+      [60, "마스터링 프리셋 적용 중...", 1],
+      [80, "[Demucs] 스템 분리 중 (드럼 · 베이스 · 멜로디)...", 2],
+      [95, "최종 패키징 중...", 2],
+    ];
+
+    for (const [pct, msg, phase] of steps) {
+      bar.style.width = pct + '%';
+      stepText.textContent = msg;
+      loadingPhase = phase;
+      await sleep(800);
+    }
+
+    // API 호출
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        genre: selectedGenre,
+        duration: parseInt(document.getElementById('duration').value),
+        mood: '공명',
+      }),
+    });
+    const data = await res.json();
+
+    bar.style.width = '100%';
+    stepText.textContent = '공명이 울립니다 ✦';
+    await sleep(800);
+
+    // 결과 표시
+    showResult(data);
+  } catch (e) {
+    stepText.textContent = '오류 발생: ' + e.message;
+    await sleep(1500);
+  } finally {
+    ls.classList.remove('active');
+    cancelAnimationFrame(loadingAnim);
+    btn.disabled = false;
+    bar.style.width = '0%';
+  }
+};
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── 결과 표시 ─────────────────────────────────────────────────────
+function showResult(data) {
+  document.getElementById('preset-tag').textContent = `PRESET · ${data.preset_applied}`;
+
+  const ts = Date.now();
+  document.getElementById('audio-full').src   = data.outputs.full_mix   + '?t=' + ts;
+  document.getElementById('audio-drums').src  = data.outputs.stems.drums + '?t=' + ts;
+  document.getElementById('audio-bass').src   = data.outputs.stems.bass  + '?t=' + ts;
+  document.getElementById('audio-melody').src = data.outputs.stems.melody + '?t=' + ts;
+
+  // EQ 시각화
+  const eq = data.preset_eq;
+  const eqKeys = Object.keys(eq);
+  const eqBar = document.getElementById('eq-bars');
+  const eqLbl = document.getElementById('eq-labels');
+  eqBar.innerHTML = ''; eqLbl.innerHTML = '';
+
+  eqKeys.forEach(k => {
+    const val = eq[k];
+    const maxH = 36;
+    const h = Math.max(4, ((val + 10) / 20) * maxH);
+    const bar = document.createElement('div');
+    bar.className = 'eq-bar';
+    bar.style.cssText = `flex:1;height:${h}px;background:var(--resonance);opacity:0.7;border-radius:1px`;
+    eqBar.appendChild(bar);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'eq-label';
+    lbl.style.cssText = 'flex:1;font-size:9px;color:var(--stone);text-align:center;letter-spacing:1px';
+    lbl.textContent = k.toUpperCase();
+    eqLbl.appendChild(lbl);
+  });
+
+  document.getElementById('result-panel').classList.add('active');
+  document.getElementById('result-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetUI() {
+  document.getElementById('result-panel').classList.remove('active');
+  ['audio-full','audio-drums','audio-bass','audio-melody'].forEach(id => {
+    document.getElementById(id).src = '';
+  });
+}
+
+// ── 초기화 ────────────────────────────────────────────────────────
+loadPresets();
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "presets": [
+    { "id": 1,  "genre": "kpop",        "name": "K-Pop 아이돌 마스터",    "base_frequency": 440, "bpm": [120,140], "eq": {"low":3,"mid":1,"high":4},  "reverb": 0.2, "compression": 0.7 },
+    { "id": 2,  "genre": "hiphop",      "name": "힙합 스트리트 펀치",     "base_frequency": 80,  "bpm": [80,100],  "eq": {"low":6,"mid":0,"high":1},  "reverb": 0.1, "compression": 0.9 },
+    { "id": 3,  "genre": "rnb",         "name": "R&B 소울 글로우",        "base_frequency": 220, "bpm": [70,95],   "eq": {"low":4,"mid":2,"high":2},  "reverb": 0.4, "compression": 0.6 },
+    { "id": 4,  "genre": "edm",         "name": "EDM 클럽 폭발",          "base_frequency": 130, "bpm": [125,145], "eq": {"low":8,"mid":-2,"high":5}, "reverb": 0.3, "compression": 0.95 },
+    { "id": 5,  "genre": "ambient",     "name": "앰비언트 심연",          "base_frequency": 174, "bpm": [60,80],   "eq": {"low":1,"mid":0,"high":2},  "reverb": 0.9, "compression": 0.3 },
+    { "id": 6,  "genre": "rock",        "name": "록 라이브 파워",         "base_frequency": 110, "bpm": [100,140], "eq": {"low":3,"mid":4,"high":3},  "reverb": 0.3, "compression": 0.8 },
+    { "id": 7,  "genre": "jazz",        "name": "재즈 클럽 나이트",       "base_frequency": 261, "bpm": [90,120],  "eq": {"low":2,"mid":3,"high":1},  "reverb": 0.5, "compression": 0.4 },
+    { "id": 8,  "genre": "classical",   "name": "클래식 콘서트홀",        "base_frequency": 523, "bpm": [60,120],  "eq": {"low":1,"mid":2,"high":3},  "reverb": 0.8, "compression": 0.2 },
+    { "id": 9,  "genre": "trap",        "name": "트랩 다크 808",          "base_frequency": 60,  "bpm": [130,160], "eq": {"low":9,"mid":-1,"high":2}, "reverb": 0.2, "compression": 0.85 },
+    { "id": 10, "genre": "lofi",        "name": "Lo-Fi 새벽 카페",        "base_frequency": 196, "bpm": [70,90],   "eq": {"low":3,"mid":1,"high":-2}, "reverb": 0.6, "compression": 0.5 },
+    { "id": 11, "genre": "house",       "name": "하우스 딥 선셋",         "base_frequency": 130, "bpm": [120,130], "eq": {"low":5,"mid":0,"high":3},  "reverb": 0.4, "compression": 0.8 },
+    { "id": 12, "genre": "drill",       "name": "드릴 UK 메탈릭",        "base_frequency": 70,  "bpm": [135,145], "eq": {"low":7,"mid":-2,"high":1}, "reverb": 0.15,"compression": 0.9 },
+    { "id": 13, "genre": "indie",       "name": "인디 루프 텍스처",       "base_frequency": 329, "bpm": [90,115],  "eq": {"low":2,"mid":3,"high":2},  "reverb": 0.45,"compression": 0.55 },
+    { "id": 14, "genre": "folk",        "name": "포크 어쿠스틱 온기",     "base_frequency": 293, "bpm": [80,110],  "eq": {"low":1,"mid":4,"high":1},  "reverb": 0.35,"compression": 0.4 },
+    { "id": 15, "genre": "metal",       "name": "메탈 하이게인 벽",       "base_frequency": 82,  "bpm": [140,200], "eq": {"low":4,"mid":-3,"high":6}, "reverb": 0.2, "compression": 0.95 },
+    { "id": 16, "genre": "funk",        "name": "펑크 그루브 슬랩",       "base_frequency": 165, "bpm": [95,120],  "eq": {"low":4,"mid":5,"high":2},  "reverb": 0.25,"compression": 0.75 },
+    { "id": 17, "genre": "soul",        "name": "소울 빈티지 따뜻함",     "base_frequency": 247, "bpm": [75,100],  "eq": {"low":3,"mid":4,"high":0},  "reverb": 0.5, "compression": 0.6 },
+    { "id": 18, "genre": "cinematic",   "name": "시네마틱 오케스트라",    "base_frequency": 392, "bpm": [50,90],   "eq": {"low":2,"mid":1,"high":4},  "reverb": 0.85,"compression": 0.35 },
+    { "id": 19, "genre": "reggae",      "name": "레게 선셋 아일랜드",     "base_frequency": 146, "bpm": [65,85],   "eq": {"low":5,"mid":2,"high":0},  "reverb": 0.4, "compression": 0.5 },
+    { "id": 20, "genre": "experimental","name": "실험적 공명 해체",       "base_frequency": 528, "bpm": [40,180],  "eq": {"low":2,"mid":-4,"high":7}, "reverb": 0.7, "compression": 0.3 }
+  ]
+}

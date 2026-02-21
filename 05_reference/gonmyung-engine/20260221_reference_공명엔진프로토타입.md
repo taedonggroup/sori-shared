@@ -48,3 +48,9 @@ python app.py
 
 ## 출처
 내부 개발 프로토타입 (SORI 프로젝트 공명 엔진 기획 기반)
+
+## 파일명 규칙 예외 사유
+본 폴더 내 코드 파일(`app.py`, `presets.json`, `requirements.txt`, `static/index.html`)은
+SHARED_RULES 파일명 규칙(YYYYMMDD_카테고리_내용)을 적용할 경우
+Flask 서버 내부 참조가 파손되어 실행 불가 상태가 됩니다.
+05_reference의 "형식 자유" 조항에 따라 코드 프로젝트 서브폴더 내 파일명은 기능명 유지.

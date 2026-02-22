@@ -1,360 +1,604 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SORI — 고독한 원석들이 부떪혀 별이 되는 첫 번째 울림</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SORI — 고독한 원석들이 부딪혀 별이 되는 첫 번째 울림</title>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #080810;
-  --card: rgba(20,20,35,0.85);
-  --indigo: #5A5CFF;
-  --cyan: #00F5FF;
-  --yellow: #F8F32B;
-  --text: #E8E8EC;
-  --muted: rgba(255,255,255,0.45);
-  --border: rgba(90,92,255,0.12);
-  --font: 'IBM Plex Mono', monospace;
+/* ── RESET ───────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080810;
+  --card:rgba(18,18,32,0.88);
+  --indigo:#5A5CFF;
+  --cyan:#00F5FF;
+  --yellow:#F8F32B;
+  --text:#E8E8EC;
+  --muted:rgba(255,255,255,0.42);
+  --border:rgba(90,92,255,0.14);
+  --font:'Courier New',Courier,monospace;
 }
-html { scroll-behavior: smooth; }
-body { font-family: var(--font); background: var(--bg); color: var(--text); overflow-x: hidden; overscroll-behavior: none; }
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0a0a14; }
-::-webkit-scrollbar-thumb { background: var(--indigo); border-radius: 2px; }
-#loader { position: fixed; inset: 0; background: #0D0D12; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; transition: opacity 0.8s cubic-bezier(0.4,0,0.2,1); }
-#loader.fade-out { opacity: 0; pointer-events: none; }
-#ascii-art { font-family: var(--font); font-size: clamp(8px,1.05vw,12px); line-height: 1.25; color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.4); white-space: pre; text-align: center; letter-spacing: 0.05em; transition: opacity 0.25s ease; }
-#loader-text { font-family: var(--font); font-size: 13px; letter-spacing: 0.25em; color: rgba(255,255,255,0.7); text-shadow: 0 0 8px rgba(255,255,255,0.4); }
-#loader-bar { width: 200px; height: 1px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; }
-#loader-bar::after { content: ''; position: absolute; left: -100%; top: 0; width: 100%; height: 100%; background: linear-gradient(90deg,transparent,#5A5CFF,#00F5FF,transparent); animation: scanline 2s ease-in-out infinite; }
-@keyframes scanline { 0% { left: -100%; } 100% { left: 100%; } }
-#three-canvas { position: fixed; inset: 0; z-index: 0; width: 100vw; height: 100vh; }
-#nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 60px; background: rgba(8,8,16,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
-#nav-logo { font-family: var(--font); font-weight: 700; font-size: 18px; letter-spacing: 0.3em; color: var(--text); text-transform: uppercase; }
-#nav-links { display: flex; gap: 32px; list-style: none; }
-#nav-links a { font-family: var(--font); font-size: 12px; letter-spacing: 0.15em; color: var(--muted); text-decoration: none; transition: color 0.3s; }
-#nav-links a:hover { color: var(--text); }
-#section-indicator { position: fixed; left: 24px; top: 50%; transform: translateY(-50%); z-index: 100; display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
-.section-dot-wrap { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.section-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.22); transition: all 0.35s cubic-bezier(0.4,0,0.2,1); flex-shrink: 0; }
-.section-dot-wrap.active .section-dot { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.6); width: 8px; height: 8px; }
-.section-label { font-family: var(--font); font-size: 10px; letter-spacing: 0.2em; color: rgba(255,255,255,0); transition: color 0.3s; white-space: nowrap; }
-.section-dot-wrap.active .section-label { color: rgba(255,255,255,0.65); }
-#scroll-container { position: relative; z-index: 10; pointer-events: none; }
-.section { height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 80px 80px 40px 80px; pointer-events: none; position: relative; }
-.section > * { pointer-events: auto; }
-#s1 { padding-left: 100px; }
-.hero-eyebrow { font-size: 10px; letter-spacing: 0.4em; color: var(--indigo); margin-bottom: 16px; text-transform: uppercase; }
-.hero-title { font-size: clamp(64px,10vw,124px); font-weight: 700; line-height: 0.88; letter-spacing: -0.02em; color: #fff; text-shadow: 0 0 60px rgba(90,92,255,0.3),0 0 120px rgba(90,92,255,0.15); margin-bottom: 14px; }
-.hero-subtitle { font-size: clamp(14px,2vw,22px); font-weight: 400; color: rgba(255,255,255,0.75); letter-spacing: 0.08em; margin-bottom: 20px; }
-.hero-slogan { font-size: 12px; letter-spacing: 0.12em; color: var(--muted); max-width: 400px; line-height: 1.9; }
-.cards-row { display: flex; gap: 16px; margin-top: 44px; flex-wrap: wrap; }
-.piece-card { background: rgba(20,20,35,0.88); border: 1px solid rgba(90,92,255,0.15); border-radius: 12px; padding: 16px; width: 220px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); cursor: pointer; transition: border-color 0.3s,box-shadow 0.3s; }
-.piece-card:nth-child(1) { animation: float-card 3s ease-in-out infinite; }
-.piece-card:nth-child(2) { animation: float-card 3s ease-in-out 0.85s infinite; }
-.piece-card:nth-child(3) { animation: float-card 3s ease-in-out 1.7s infinite; }
-.piece-card:hover { border-color: rgba(90,92,255,0.5); box-shadow: 0 0 20px rgba(90,92,255,0.12); }
-@keyframes float-card { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-.waveform { display: flex; align-items: flex-end; gap: 3px; height: 36px; margin-bottom: 12px; }
-.waveform-bar { width: 4px; background: linear-gradient(to top,var(--indigo),var(--cyan)); border-radius: 2px; opacity: 0.85; transform-origin: bottom; animation: wave-pulse 1.5s ease-in-out infinite; }
-@keyframes wave-pulse { 0%,100%{transform:scaleY(1);opacity:0.85} 50%{transform:scaleY(0.42);opacity:0.48} }
-.piece-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--text); margin-bottom: 4px; }
-.piece-meta { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 12px; }
-.layer-btn { font-family: var(--font); font-size: 10px; letter-spacing: 0.15em; color: var(--indigo); border: 1px solid rgba(90,92,255,0.35); background: transparent; padding: 6px 12px; border-radius: 4px; cursor: pointer; width: 100%; transition: all 0.25s; }
-.layer-btn:hover { background: rgba(90,92,255,0.18); color: #fff; border-color: rgba(90,92,255,0.6); }
-#s2 { align-items: center; text-align: center; }
-.resonance-title { font-size: clamp(42px,7vw,84px); font-weight: 700; color: #fff; letter-spacing: 0.06em; text-shadow: 0 0 40px rgba(90,92,255,0.55),0 0 80px rgba(90,92,255,0.2); margin-bottom: 14px; line-height: 1.1; }
-.resonance-subtitle { font-size: 12px; letter-spacing: 0.22em; color: var(--muted); margin-bottom: 52px; }
-.pulse-container { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: -1; }
-.pulse-ring { position: absolute; border: 1px solid rgba(90,92,255,0.38); border-radius: 50%; width: 200px; height: 200px; }
-.pulse-ring:nth-child(1) { animation: pulse-out 2s ease-out infinite; }
-.pulse-ring:nth-child(2) { animation: pulse-out 2s ease-out 0.67s infinite; }
-.pulse-ring:nth-child(3) { animation: pulse-out 2s ease-out 1.34s infinite; }
-@keyframes pulse-out { 0%{transform:scale(1);opacity:0.8} 100%{transform:scale(2.9);opacity:0} }
-.match-cards { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
-.match-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; width: 200px; backdrop-filter: blur(8px); text-align: left; }
-.match-score-num { font-size: 26px; font-weight: 700; color: var(--cyan); margin-bottom: 6px; line-height: 1; }
-.match-score-bar-wrap { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-bottom: 10px; overflow: hidden; }
-.match-score-bar { height: 100%; background: linear-gradient(90deg,var(--indigo),var(--cyan)); border-radius: 2px; }
-.match-name { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--text); margin-bottom: 8px; }
-.match-breakdown { font-size: 9px; letter-spacing: 0.08em; color: var(--muted); line-height: 1.7; }
-#s3 { justify-content: space-between; padding-top: 100px; padding-bottom: 60px; }
-.abyss-top { font-size: 11px; letter-spacing: 0.25em; color: var(--muted); }
-.abyss-hint { text-align: center; font-size: 12px; letter-spacing: 0.2em; color: rgba(255,255,255,0.35); padding-bottom: 20px; animation: hint-pulse 3s ease-in-out infinite; }
-@keyframes hint-pulse { 0%,100%{opacity:0.35} 50%{opacity:0.72} }
-#resonance-toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(248,243,43,0.1); border: 1px solid rgba(248,243,43,0.45); color: var(--yellow); font-family: var(--font); font-size: 12px; letter-spacing: 0.22em; padding: 13px 30px; border-radius: 6px; opacity: 0; z-index: 200; pointer-events: none; transition: opacity 0.4s cubic-bezier(0.4,0,0.2,1),transform 0.4s cubic-bezier(0.4,0,0.2,1); backdrop-filter: blur(10px); white-space: nowrap; box-shadow: 0 0 30px rgba(248,243,43,0.12); }
-#resonance-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
-#s4 { justify-content: center; padding-left: 100px; }
-.cosmos-label { font-size: 10px; letter-spacing: 0.4em; color: var(--indigo); margin-bottom: 20px; text-transform: uppercase; }
-.cosmos-title { font-size: clamp(28px,4.5vw,52px); font-weight: 700; color: #fff; letter-spacing: 0.06em; margin-bottom: 40px; text-shadow: 0 0 30px rgba(90,92,255,0.4); }
-.jam-list { display: flex; flex-direction: column; gap: 20px; max-width: 560px; margin-bottom: 48px; }
-.jam-entry { display: flex; flex-direction: column; gap: 8px; }
-.jam-header { display: flex; justify-content: space-between; align-items: center; }
-.jam-title-text { font-size: 13px; font-weight: 600; letter-spacing: 0.1em; color: var(--text); }
-.jam-meta { font-size: 10px; letter-spacing: 0.1em; color: var(--muted); }
-.jam-bar-wrap { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
-.jam-bar { height: 100%; background: linear-gradient(90deg,var(--indigo),var(--cyan)); border-radius: 2px; animation: jam-glow 2s ease-in-out infinite alternate; }
-@keyframes jam-glow { from{box-shadow:0 0 4px rgba(90,92,255,0.4)} to{box-shadow:0 0 18px rgba(0,245,255,0.7)} }
-.station-teaser { font-size: 11px; letter-spacing: 0.2em; color: rgba(255,255,255,0.28); margin-top: 16px; }
-.copyright { font-size: 10px; letter-spacing: 0.15em; color: rgba(255,255,255,0.18); margin-top: 8px; }
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:#0a0a14}
+::-webkit-scrollbar-thumb{background:var(--indigo);border-radius:2px}
+
+/* ── LOADER ──────────────────────────────────────── */
+#loader{
+  position:fixed;inset:0;background:#0D0D12;z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  transition:opacity 0.85s cubic-bezier(0.4,0,0.2,1);
+}
+#loader.gone{opacity:0;pointer-events:none}
+#ascii-art{
+  font-family:var(--font);font-size:clamp(9px,1.1vw,13px);line-height:1.3;
+  color:#fff;text-shadow:0 0 10px rgba(255,255,255,0.38);
+  white-space:pre;text-align:center;letter-spacing:0.06em;
+  transition:opacity 0.22s ease;
+}
+#loader-sub{
+  font-family:var(--font);font-size:12px;letter-spacing:0.28em;
+  color:rgba(255,255,255,0.65);text-shadow:0 0 8px rgba(90,92,255,0.5);
+}
+#loader-bar{width:180px;height:1px;background:rgba(255,255,255,0.09);overflow:hidden;position:relative}
+#loader-bar::after{
+  content:'';position:absolute;left:-100%;top:0;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,#5A5CFF,#00F5FF,transparent);
+  animation:scan 1.8s ease-in-out infinite;
+}
+@keyframes scan{0%{left:-100%}100%{left:100%}}
+
+/* ── CANVAS ──────────────────────────────────────── */
+#bg-canvas{position:fixed;inset:0;z-index:0;width:100vw;height:100vh;display:block}
+
+/* ── NAV ─────────────────────────────────────────── */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 40px;height:58px;
+  background:rgba(8,8,16,0.82);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,0.055);
+}
+#nav-logo{font-weight:700;font-size:17px;letter-spacing:0.32em;color:var(--text);text-transform:uppercase}
+#nav-links{display:flex;gap:28px;list-style:none}
+#nav-links a{font-size:11px;letter-spacing:0.16em;color:var(--muted);text-decoration:none;transition:color 0.25s}
+#nav-links a:hover{color:var(--text)}
+
+/* ── SECTION INDICATOR ───────────────────────────── */
+#ind{
+  position:fixed;left:22px;top:50%;transform:translateY(-50%);
+  z-index:200;display:flex;flex-direction:column;gap:20px;
+}
+.dot-row{display:flex;align-items:center;gap:10px;cursor:pointer}
+.dot{
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(255,255,255,0.2);flex-shrink:0;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.dot-row.on .dot{background:#fff;box-shadow:0 0 8px rgba(255,255,255,0.6);width:8px;height:8px}
+.dot-lbl{font-size:9px;letter-spacing:0.22em;color:rgba(255,255,255,0);transition:color 0.3s;white-space:nowrap}
+.dot-row.on .dot-lbl{color:rgba(255,255,255,0.6)}
+
+/* ── SCROLL CONTENT ──────────────────────────────── */
+#content{position:relative;z-index:10;pointer-events:none}
+.sec{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;padding:80px 90px 60px 90px;
+  pointer-events:none;position:relative;
+}
+.sec>*{pointer-events:auto}
+
+/* ── S1 HERO ─────────────────────────────────────── */
+.eyebrow{font-size:10px;letter-spacing:0.42em;color:var(--indigo);margin-bottom:18px;text-transform:uppercase}
+.hero-title{
+  font-size:clamp(64px,11vw,130px);font-weight:700;line-height:0.87;
+  letter-spacing:-0.02em;color:#fff;
+  text-shadow:0 0 70px rgba(90,92,255,0.28),0 0 140px rgba(90,92,255,0.12);
+  margin-bottom:16px;
+}
+.hero-sub{font-size:clamp(14px,2.2vw,24px);color:rgba(255,255,255,0.72);letter-spacing:0.09em;margin-bottom:18px}
+.hero-slogan{font-size:12px;letter-spacing:0.13em;color:var(--muted);max-width:380px;line-height:2.0}
+.cards-row{display:flex;gap:16px;margin-top:46px;flex-wrap:wrap}
+.pcard{
+  background:rgba(18,18,34,0.9);border:1px solid rgba(90,92,255,0.16);
+  border-radius:12px;padding:18px;width:210px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  cursor:pointer;transition:border-color 0.3s,box-shadow 0.3s;
+}
+.pcard:nth-child(1){animation:fc 3.2s ease-in-out infinite}
+.pcard:nth-child(2){animation:fc 3.2s ease-in-out 0.9s infinite}
+.pcard:nth-child(3){animation:fc 3.2s ease-in-out 1.8s infinite}
+.pcard:hover{border-color:rgba(90,92,255,0.48);box-shadow:0 0 22px rgba(90,92,255,0.1)}
+@keyframes fc{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.wf{display:flex;align-items:flex-end;gap:3px;height:38px;margin-bottom:14px}
+.wb{
+  width:4px;background:linear-gradient(to top,var(--indigo),var(--cyan));
+  border-radius:2px;opacity:0.82;transform-origin:bottom;
+  animation:wp 1.6s ease-in-out infinite;
+}
+@keyframes wp{0%,100%{transform:scaleY(1);opacity:0.82}50%{transform:scaleY(0.38);opacity:0.44}}
+.ptitle{font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--text);margin-bottom:5px}
+.pmeta{font-size:10px;color:var(--muted);letter-spacing:0.08em;margin-bottom:13px}
+.lbtn{
+  font-family:var(--font);font-size:10px;letter-spacing:0.16em;
+  color:var(--indigo);border:1px solid rgba(90,92,255,0.36);
+  background:transparent;padding:7px 12px;border-radius:4px;
+  cursor:pointer;width:100%;transition:all 0.25s;
+}
+.lbtn:hover{background:rgba(90,92,255,0.16);color:#fff;border-color:rgba(90,92,255,0.62)}
+
+/* ── S2 RESONANCE ────────────────────────────────── */
+#s2{align-items:center;text-align:center}
+.rtitle{
+  font-size:clamp(44px,7.5vw,88px);font-weight:700;color:#fff;
+  letter-spacing:0.07em;line-height:1.08;
+  text-shadow:0 0 45px rgba(90,92,255,0.55),0 0 90px rgba(90,92,255,0.2);
+  margin-bottom:14px;
+}
+.rsub{font-size:11px;letter-spacing:0.24em;color:var(--muted);margin-bottom:56px}
+.pulse-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:-1}
+.pring{
+  position:absolute;border:1px solid rgba(90,92,255,0.34);
+  border-radius:50%;width:220px;height:220px;
+}
+.pring:nth-child(1){animation:po 2.2s ease-out infinite}
+.pring:nth-child(2){animation:po 2.2s ease-out 0.73s infinite}
+.pring:nth-child(3){animation:po 2.2s ease-out 1.46s infinite}
+@keyframes po{0%{transform:scale(1);opacity:0.82}100%{transform:scale(3.2);opacity:0}}
+.mcards{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+.mc{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:20px;width:190px;
+  backdrop-filter:blur(10px);text-align:left;
+}
+.mscore{font-size:28px;font-weight:700;color:var(--cyan);margin-bottom:6px;line-height:1}
+.mbar-w{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;margin-bottom:10px;overflow:hidden}
+.mbar{height:100%;background:linear-gradient(90deg,var(--indigo),var(--cyan));border-radius:2px}
+.mname{font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--text);margin-bottom:8px}
+.mbd{font-size:9px;letter-spacing:0.08em;color:var(--muted);line-height:1.8}
+
+/* ── S3 ABYSS ────────────────────────────────────── */
+#s3{justify-content:space-between;padding-top:110px;padding-bottom:70px}
+.atop{font-size:11px;letter-spacing:0.26em;color:var(--muted)}
+.ahint{
+  text-align:center;font-size:11px;letter-spacing:0.22em;
+  color:rgba(255,255,255,0.32);padding-bottom:24px;
+  animation:hp 3.2s ease-in-out infinite;
+}
+@keyframes hp{0%,100%{opacity:0.32}50%{opacity:0.68}}
+
+/* ── S4 COSMOS ───────────────────────────────────── */
+#s4{padding-left:100px}
+.clabel{font-size:10px;letter-spacing:0.42em;color:var(--indigo);margin-bottom:22px;text-transform:uppercase}
+.ctitle{
+  font-size:clamp(28px,4.8vw,54px);font-weight:700;color:#fff;
+  letter-spacing:0.07em;margin-bottom:42px;
+  text-shadow:0 0 32px rgba(90,92,255,0.38);
+}
+.jlist{display:flex;flex-direction:column;gap:22px;max-width:540px;margin-bottom:50px}
+.je{display:flex;flex-direction:column;gap:9px}
+.jh{display:flex;justify-content:space-between;align-items:center}
+.jtxt{font-size:13px;font-weight:700;letter-spacing:0.1em;color:var(--text)}
+.jm{font-size:10px;letter-spacing:0.1em;color:var(--muted)}
+.jbw{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
+.jb{
+  height:100%;background:linear-gradient(90deg,var(--indigo),var(--cyan));
+  border-radius:2px;animation:jg 2s ease-in-out infinite alternate;
+}
+@keyframes jg{from{box-shadow:0 0 4px rgba(90,92,255,0.4)}to{box-shadow:0 0 18px rgba(0,245,255,0.7)}}
+.stease{font-size:11px;letter-spacing:0.2em;color:rgba(255,255,255,0.26);margin-top:18px}
+.copy{font-size:10px;letter-spacing:0.15em;color:rgba(255,255,255,0.17);margin-top:10px}
+
+/* ── TOAST ───────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:72px;left:50%;
+  transform:translateX(-50%) translateY(18px);
+  background:rgba(248,243,43,0.09);border:1px solid rgba(248,243,43,0.42);
+  color:var(--yellow);font-family:var(--font);font-size:12px;
+  letter-spacing:0.24em;padding:13px 28px;border-radius:6px;
+  opacity:0;z-index:300;pointer-events:none;
+  transition:opacity 0.38s,transform 0.38s;
+  backdrop-filter:blur(10px);white-space:nowrap;
+  box-shadow:0 0 28px rgba(248,243,43,0.1);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
-<!-- ASCII LOADER -->
+
+<!-- LOADER -->
 <div id="loader">
   <div id="ascii-art"></div>
-  <div id="loader-text">공명의 주파수를 맞추는 중...</div>
+  <div id="loader-sub">공명의 주파수를 맞추는 중...</div>
   <div id="loader-bar"></div>
 </div>
-<canvas id="three-canvas"></canvas>
-<!-- TOP NAV -->
+
+<!-- BACKGROUND CANVAS -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
 <nav id="nav">
   <div id="nav-logo">SORI</div>
   <ul id="nav-links">
     <li><a href="#s1">조각올리기</a></li>
-    <li><a href="#s2">공명잘기</a></li>
+    <li><a href="#s2">공명찾기</a></li>
+    <li><a href="#s4">울림</a></li>
   </ul>
 </nav>
+
 <!-- SECTION INDICATOR -->
-<div id="section-indicator">
-  <div class="section-dot-wrap active" data-target="s1"><div class="section-dot"></div><span class="section-label">도시</span></div>
-  <div class="section-dot-wrap" data-target="s2"><div class="section-dot"></div><span class="section-label">공명지대</span></div>
-  <div class="section-dot-wrap" data-target="s3"><div class="section-dot"></div><span class="section-label">심연</span></div>
-  <div class="section-dot-wrap" data-target="s4"><div class="section-dot"></div><span class="section-label">우주</span></div>
+<div id="ind">
+  <div class="dot-row on" data-t="s1"><div class="dot"></div><span class="dot-lbl">도시</span></div>
+  <div class="dot-row" data-t="s2"><div class="dot"></div><span class="dot-lbl">공명지대</span></div>
+  <div class="dot-row" data-t="s3"><div class="dot"></div><span class="dot-lbl">심연</span></div>
+  <div class="dot-row" data-t="s4"><div class="dot"></div><span class="dot-lbl">우주</span></div>
 </div>
-<div id="scroll-container">
-<!-- S1 -->
-<section class="section" id="s1">
-  <div class="hero-eyebrow">// 원석들의 도시</div>
-  <h1 class="hero-title">SORI</h1>
-  <p class="hero-subtitle">소리로 연결되는 순간</p>
-  <p class="hero-slogan">고독한 원석들이 부떪혀<br>별이 되는 첫 번째 울림</p>
-  <div class="cards-row">
-    <div class="piece-card">
-      <div class="waveform" id="wf1"></div>
-      <div class="piece-title">새벽 루프 #7</div>
-      <div class="piece-meta">120 BPM · Am · 0:28</div>
-      <button class="layer-btn">격치기 (Layer This)</button>
+
+<!-- CONTENT -->
+<div id="content">
+
+  <!-- S1 도시 -->
+  <section class="sec" id="s1">
+    <div class="eyebrow">// 원석들의 도시</div>
+    <h1 class="hero-title">SORI</h1>
+    <p class="hero-sub">소리로 연결되는 순간</p>
+    <p class="hero-slogan">고독한 원석들이 부딪혀<br>별이 되는 첫 번째 울림</p>
+    <div class="cards-row">
+      <div class="pcard">
+        <div class="wf" id="wf1"></div>
+        <div class="ptitle">새벽 루프 #7</div>
+        <div class="pmeta">120 BPM · Am · 0:28</div>
+        <button class="lbtn">겹치기 (Layer This)</button>
+      </div>
+      <div class="pcard">
+        <div class="wf" id="wf2"></div>
+        <div class="ptitle">도심 텍스처</div>
+        <div class="pmeta">92 BPM · F# · 0:30</div>
+        <button class="lbtn">겹치기 (Layer This)</button>
+      </div>
+      <div class="pcard">
+        <div class="wf" id="wf3"></div>
+        <div class="ptitle">골목 에코</div>
+        <div class="pmeta">140 BPM · C · 0:29</div>
+        <button class="lbtn">겹치기 (Layer This)</button>
+      </div>
     </div>
-    <div class="piece-card">
-      <div class="waveform" id="wf2"></div>
-      <div class="piece-title">도심 텍스처</div>
-      <div class="piece-meta">92 BPM · F# · 0:30</div>
-      <button class="layer-btn">격치기 (Layer This)</button>
+  </section>
+
+  <!-- S2 공명지대 -->
+  <section class="sec" id="s2">
+    <div class="pulse-wrap">
+      <div class="pring"></div><div class="pring"></div><div class="pring"></div>
     </div>
-    <div class="piece-card">
-      <div class="waveform" id="wf3"></div>
-      <div class="piece-title">골목 에코</div>
-      <div class="piece-meta">140 BPM · C · 0:29</div>
-      <button class="layer-btn">격치기 (Layer This)</button>
+    <h2 class="rtitle">공명<br>(共鳴)</h2>
+    <p class="rsub">// 비슷한 에너지의 원석을 찾는 중</p>
+    <div class="mcards">
+      <div class="mc">
+        <div class="mscore">80</div>
+        <div class="mbar-w"><div class="mbar" style="width:80%"></div></div>
+        <div class="mname">원석 #A — 이루다</div>
+        <div class="mbd">키 호환 +20<br>BPM 유사 +15<br>역할 보완 +10<br>감성 태그 +35</div>
+      </div>
+      <div class="mc">
+        <div class="mscore">65</div>
+        <div class="mbar-w"><div class="mbar" style="width:65%"></div></div>
+        <div class="mname">원석 #B — 현우</div>
+        <div class="mbd">키 호환 +15<br>BPM 유사 +20<br>역할 보완 +10<br>감성 태그 +20</div>
+      </div>
+      <div class="mc">
+        <div class="mscore">52</div>
+        <div class="mbar-w"><div class="mbar" style="width:52%"></div></div>
+        <div class="mname">원석 #C — 지민</div>
+        <div class="mbd">키 호환 +10<br>BPM 유사 +12<br>역할 보완 +15<br>감성 태그 +15</div>
+      </div>
     </div>
-  </div>
-</section>
-<!-- S2 -->
-<section class="section" id="s2">
-  <div class="pulse-container"><div class="pulse-ring"></div><div class="pulse-ring"></div><div class="pulse-ring"></div></div>
-  <h2 class="resonance-title">공명<br>(共鳴)</h2>
-  <p class="resonance-subtitle">// 비슷한 에너지의 원석을 찾는 중</p>
-  <div class="match-cards">
-    <div class="match-card">
-      <div class="match-score-num">80</div>
-      <div class="match-score-bar-wrap"><div class="match-score-bar" style="width:80%"></div></div>
-      <div class="match-name">원석 #A — 이루다</div>
-      <div class="match-breakdown">키 호환 +20<br>BPM 유사 +15<br>역할 보완 +10<br>감성 태그 +35</div>
+  </section>
+
+  <!-- S3 심연 -->
+  <section class="sec" id="s3">
+    <div class="atop">// 7개의 원석이 부유합니다</div>
+    <div class="ahint">원석을 클릭해 공명을 일으키세요 ✦</div>
+  </section>
+
+  <!-- S4 우주 -->
+  <section class="sec" id="s4">
+    <div class="clabel">// 완성된 울림</div>
+    <h2 class="ctitle">우주가 된 조각들</h2>
+    <div class="jlist">
+      <div class="je">
+        <div class="jh"><span class="jtxt">새벽 루프 × 도심 텍스처</span><span class="jm">3 layers · completed</span></div>
+        <div class="jbw"><div class="jb" style="width:90%"></div></div>
+      </div>
+      <div class="je">
+        <div class="jh"><span class="jtxt">골목 에코 × 빗소리 패드</span><span class="jm">2 layers · completed</span></div>
+        <div class="jbw"><div class="jb" style="width:72%"></div></div>
+      </div>
+      <div class="je">
+        <div class="jh"><span class="jtxt">한강 새벽 세션</span><span class="jm">4 layers · completed</span></div>
+        <div class="jbw"><div class="jb" style="width:100%"></div></div>
+      </div>
     </div>
-    <div class="match-card">
-      <div class="match-score-num">65</div>
-      <div class="match-score-bar-wrap"><div class="match-score-bar" style="width:65%"></div></div>
-      <div class="match-name">원석 #B — 현우</div>
-      <div class="match-breakdown">키 호환 +15<br>BPM 유사 +20<br>역할 보완 +10<br>감성 태그 +20</div>
-    </div>
-    <div class="match-card">
-      <div class="match-score-num">52</div>
-      <div class="match-score-bar-wrap"><div class="match-score-bar" style="width:52%"></div></div>
-      <div class="match-name">원석 #C — 지민</div>
-      <div class="match-breakdown">키 호환 +10<br>BPM 유사 +12<br>역할 보완 +15<br>감성 태그 +15</div>
-    </div>
-  </div>
-</section>
-<!-- S3 -->
-<section class="section" id="s3">
-  <div class="abyss-top">// 7개의 원석이 부유합니다</div>
-  <div class="abyss-hint">원석을 클릭해 공명을 일으키세요 ✦</div>
-</section>
-<!-- S4 -->
-<section class="section" id="s4">
-  <div class="cosmos-label">// 완성된 울림</div>
-  <h2 class="cosmos-title">우주가 된 조각들</h2>
-  <div class="jam-list">
-    <div class="jam-entry">
-      <div class="jam-header"><span class="jam-title-text">새벽 루프 × 도심 텍스처</span><span class="jam-meta">3 layers · completed</span></div>
-      <div class="jam-bar-wrap"><div class="jam-bar" style="width:90%"></div></div>
-    </div>
-    <div class="jam-entry">
-      <div class="jam-header"><span class="jam-title-text">골목 에코 × 빗소리 패드</span><span class="jam-meta">2 layers · completed</span></div>
-      <div class="jam-bar-wrap"><div class="jam-bar" style="width:72%"></div></div>
-    </div>
-    <div class="jam-entry">
-      <div class="jam-header"><span class="jam-title-text">한강 새벽 세션</span><span class="jam-meta">4 layers · completed</span></div>
-      <div class="jam-bar-wrap"><div class="jam-bar" style="width:100%"></div></div>
-    </div>
-  </div>
-  <div class="station-teaser">SORI Station — 2026 오프라인 공간 예정</div>
-  <div class="copyright">SORI © 2026 · 태동(TEDONG)</div>
-</section>
+    <div class="stease">SORI Station — 2026 오프라인 공간 예정</div>
+    <div class="copy">SORI © 2026 · 태동(TEDONG)</div>
+  </section>
 </div>
-<div id="resonance-toast">공명 발생 ✦ 조각이 연결됩니다</div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
+<div id="toast">공명 발생 ✦ 조각이 연결됩니다</div>
+
 <script>
-var F0 = "    ·  ·  ·  ·  ·  ·  ·  ·  ·
-  ·                           ·
-·    ╔═══╗  ╔═══╗  ╔═══╗       ·
-·    ╚═╗ ║  ║   ║  ╠╦══╝       ·
-·    ╔═╝ ║  ║   ║  ║╚══╗       ·
-·    ╚═══╝  ╚═══╝  ╩   ╩       ·
-  ·       원석들의 도시         ·
-    ·  ·  ·  ·  ·  ·  ·  ·  ·";
-var F1 = "  ╭─────────────────────────────╮
-  │  ♦  ·  ·  ♦  ·  ·  ♦      │
-  │  ·      공     명     ·    │
-  │  ·      共     鳴     ·    │
-  │  ♦  ·  ·  ♦  ·  ·  ♦      │
-  │                             │
-  │    소리가 퍼집니다...       │
-  ╰─────────────────────────────╯";
-var F2 = "     ★        ·        ★
-  ·       ·       ·       ·
-  ·   /원석\  /들이\  /부떪\  ·
-  ·  /──────\/──────\/──────\ ·
-  ·         충 돌 중          ·
-  ·    별이 되는 순간         ·
-     ★        ·        ★";
-var F3 = "  ┌───────────────────────────┐
-  │  S · O · R · I  /  소 리  │
-  ├───────────────────────────┤
-  │  ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈  │
-  │    주파수 감지 중...       │
-  │  ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈  │
-  │                           │
-  │   ·  ·  ·  ♪  ·  ·  ·   │
-  └───────────────────────────┘";
-var FRAMES = [F0, F1, F2, F3];
-var frameIdx = 0;
-var asciiEl = document.getElementById('ascii-art');
-asciiEl.style.opacity = '1';
-asciiEl.textContent = FRAMES[0];
-function cycleAscii() { asciiEl.style.opacity = '0'; setTimeout(function(){ frameIdx=(frameIdx+1)%FRAMES.length; asciiEl.textContent=FRAMES[frameIdx]; asciiEl.style.opacity='1'; },220); }
-var aTimer = setInterval(cycleAscii, 620);
-setTimeout(function(){ clearInterval(aTimer); var ld=document.getElementById('loader'); ld.classList.add('fade-out'); setTimeout(function(){ld.style.display='none';},800); }, 2500);
-function buildWF(id, hts) { var el=document.getElementById(id); hts.forEach(function(h,i){ var b=document.createElement('div'); b.className='waveform-bar'; b.style.height=h+'px'; b.style.animationDelay=(i*0.11)+'s'; el.appendChild(b); }); }
-buildWF('wf1',[12,22,30,36,26,18,32,22,14,28,34,20]);
-buildWF('wf2',[26,16,34,20,28,36,14,24,30,18,28,12]);
-buildWF('wf3',[18,30,14,28,36,20,30,16,32,22,26,18]);
-var cvs = document.getElementById('three-canvas');
-var renderer = new THREE.WebGLRenderer({ canvas: cvs, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
-var scene = new THREE.Scene();
-scene.background = new THREE.Color(0x080810);
-scene.fog = new THREE.FogExp2(0x080810, 0.028);
-var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 200);
-camera.position.set(0, 0, 5);
-scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-var pl1 = new THREE.PointLight(0x5A5CFF, 1.5, 30);
-pl1.position.set(3, 3, 3); scene.add(pl1);
-var pl2 = new THREE.PointLight(0x00F5FF, 0.8, 20);
-pl2.position.set(-3, -2, 2); scene.add(pl2);
-var pl3 = new THREE.PointLight(0xffffff, 0.35, 14);
-pl3.position.set(0, 5, -3); scene.add(pl3);
-var N = 4000;
-var sg = new THREE.BufferGeometry();
-var sp = new Float32Array(N*3);
-var ss = new Float32Array(N);
-for(var i=0;i<N;i++){ sp[i*3]=(Math.random()-0.5)*120; sp[i*3+1]=(Math.random()-0.5)*120; sp[i*3+2]=(Math.random()-0.5)*80; ss[i]=0.003+Math.random()*0.007; }
-sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
-var stars = new THREE.Points(sg, new THREE.PointsMaterial({ color:0xffffff, size:0.065, sizeAttenuation:true, transparent:true, opacity:0.82 }));
-scene.add(stars);
-var SD=[{x:-2.8,y:1.2,z:-1.0,r:0.55,c:0x3d3d6b,rs:[0.003,0.005,0.002]},{x:2.5,y:-0.8,z:-0.5,r:0.45,c:0x2a2a5a,rs:[0.004,0.002,0.006]},{x:0.2,y:2.0,z:-1.5,r:0.62,c:0x4a3a6e,rs:[0.002,0.007,0.003]},{x:-1.5,y:-1.8,z:0.5,r:0.38,c:0x2e4060,rs:[0.006,0.003,0.004]},{x:3.2,y:1.5,z:-2.0,r:0.72,c:0x3a2e6a,rs:[0.003,0.004,0.005]},{x:-2.2,y:0.0,z:1.0,r:0.42,c:0x2a3a5e,rs:[0.005,0.006,0.002]},{x:0.8,y:-1.2,z:-0.8,r:0.50,c:0x3e2a66,rs:[0.004,0.003,0.007]}];
-var stones=[];
-SD.forEach(function(sd){
-  var geo=new THREE.IcosahedronGeometry(sd.r,3);
-  var pa=geo.attributes.position;
-  for(var vi=0;vi<pa.count;vi++){ var n=0.88+Math.random()*0.24; pa.setXYZ(vi,pa.getX(vi)*n,pa.getY(vi)*n,pa.getZ(vi)*n); }
-  geo.computeVertexNormals();
-  var mat=new THREE.MeshStandardMaterial({ color:sd.c, roughness:0.3, metalness:0.8, emissive:new THREE.Color(0x5A5CFF), emissiveIntensity:0.15 });
-  var mesh=new THREE.Mesh(geo,mat);
-  mesh.position.set(sd.x,sd.y,sd.z);
-  scene.add(mesh);
-  stones.push({mesh:mesh,mat:mat,rs:sd.rs,baseY:sd.y,tScale:1.0,tEm:new THREE.Color(0x5A5CFF),tEmI:0.15,cEmI:0.15,clicked:false});
-});
-var ray=new THREE.Raycaster();
-var mouse=new THREE.Vector2(-9999,-9999);
-var hovered=null;
-window.addEventListener('mousemove',function(e){ mouse.x=(e.clientX/window.innerWidth)*2-1; mouse.y=-(e.clientY/window.innerHeight)*2+1; });
-function fireRes(s){
-  s.clicked=true;
-  s.tEm.set(0xF8F32B); s.tEmI=1.5; s.tScale=1.32;
-  var t=document.getElementById('resonance-toast');
-  t.classList.add('visible');
-  setTimeout(function(){ t.classList.remove('visible'); },2000);
-  setTimeout(function(){ s.clicked=false; s.tEm.set(0x5A5CFF); s.tEmI=0.15; s.tScale=1.0; },800);
+/* ── 1. LOADER — 완전히 독립, 외부 의존 없음 ──────── */
+var FRAMES = [
+"    ·  ·  ·  ·  ·  ·  ·  ·  ·\n  ·                           ·\n·    ╔═══╗  ╔═══╗  ╔═══╗       ·\n·    ╚═╗ ║  ║   ║  ╠╦══╝       ·\n·    ╔═╝ ║  ║   ║  ║╚══╗       ·\n·    ╚═══╝  ╚═══╝  ╩   ╩       ·\n  ·       원석들의 도시         ·\n    ·  ·  ·  ·  ·  ·  ·  ·  ·",
+"  ╭─────────────────────────────╮\n  │  ♦  ·  ·  ♦  ·  ·  ♦      │\n  │  ·      공     명     ·    │\n  │  ·      共     鳴     ·    │\n  │  ♦  ·  ·  ♦  ·  ·  ♦      │\n  │                             │\n  │    소리가 퍼집니다...       │\n  ╰─────────────────────────────╯",
+"     ★        ·        ★\n  ·       ·       ·       ·\n  ·   /원석\\ /들이\\ /부딪\\  ·\n  ·  /──────\\/──────\\/──────\\ ·\n  ·         충 돌 중          ·\n  ·    별이 되는 순간         ·\n     ★        ·        ★",
+"  ┌───────────────────────────┐\n  │  S · O · R · I  /  소 리  │\n  ├───────────────────────────┤\n  │  ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈  │\n  │    주파수 감지 중...       │\n  │  ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈  │\n  │   ·  ·  ·  ♪  ·  ·  ·   │\n  └───────────────────────────┘"
+];
+
+var ael = document.getElementById('ascii-art');
+var fi = 0;
+ael.textContent = FRAMES[0];
+
+var aiv = setInterval(function() {
+  ael.style.opacity = '0';
+  setTimeout(function() {
+    fi = (fi + 1) % FRAMES.length;
+    ael.textContent = FRAMES[fi];
+    ael.style.opacity = '1';
+  }, 200);
+}, 650);
+
+// 로더 페이드아웃 — 타이머 기반, 외부 로딩 완전 독립
+setTimeout(function() {
+  clearInterval(aiv);
+  var ld = document.getElementById('loader');
+  ld.classList.add('gone');
+  setTimeout(function() { ld.style.display = 'none'; }, 900);
+}, 2600);
+
+/* ── 2. WAVEFORM BARS ─────────────────────────────── */
+function buildWF(id, hs) {
+  var el = document.getElementById(id);
+  hs.forEach(function(h, i) {
+    var b = document.createElement('div');
+    b.className = 'wb';
+    b.style.height = h + 'px';
+    b.style.animationDelay = (i * 0.12) + 's';
+    el.appendChild(b);
+  });
 }
-window.addEventListener('click',function(){ if(hovered) fireRes(hovered); });
-var scrollProg=0;
-window.addEventListener('scroll',function(){ var tot=document.body.scrollHeight-window.innerHeight; scrollProg=tot>0?window.scrollY/tot:0; });
-var secEls=document.querySelectorAll('.section');
-var dots=document.querySelectorAll('.section-dot-wrap');
-var io=new IntersectionObserver(function(ents){
-  ents.forEach(function(e){
-    if(!e.isIntersecting) return;
-    var id=e.target.id;
-    dots.forEach(function(d){ d.classList.remove('active'); });
-    dots.forEach(function(d){ if(d.dataset.target===id) d.classList.add('active'); });
-  });
-},{threshold:0.5});
-secEls.forEach(function(s){io.observe(s);});
-dots.forEach(function(d){ d.addEventListener('click',function(){ var t=document.getElementById(d.dataset.target); if(t) t.scrollIntoView({behavior:'smooth'}); }); });
-window.addEventListener('resize',function(){ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); });
-var clock=new THREE.Clock();
-var orbit=0;
-function lerp(a,b,t){return a+(b-a)*t;}
-function animate(){
-  requestAnimationFrame(animate);
-  var t=clock.getElapsedTime();
-  var p=sg.attributes.position;
-  for(var i=0;i<N;i++){ p.array[i*3+1]+=ss[i]; if(p.array[i*3+1]>60) p.array[i*3+1]=-60; }
-  p.needsUpdate=true;
-  stones.forEach(function(s,i){
-    s.mesh.rotation.x+=s.rs[0]; s.mesh.rotation.y+=s.rs[1]; s.mesh.rotation.z+=s.rs[2];
-    s.mesh.position.y=s.baseY+Math.sin(t*0.45+i*1.15)*0.13;
-    var cs=s.mesh.scale.x; s.mesh.scale.setScalar(lerp(cs,s.tScale,0.09));
-    s.mat.emissive.lerp(s.tEm,0.07);
-    s.cEmI=lerp(s.cEmI,s.tEmI,0.07); s.mat.emissiveIntensity=s.cEmI;
-  });
-  ray.setFromCamera(mouse,camera);
-  var hits=ray.intersectObjects(stones.map(function(s){return s.mesh;}));
-  var hs=null;
-  if(hits.length>0){ for(var si=0;si<stones.length;si++){ if(stones[si].mesh===hits[0].object){hs=stones[si];break;} } }
-  if(hs!==hovered){
-    if(hovered&&!hovered.clicked){ hovered.tScale=1.0; hovered.tEm.set(0x5A5CFF); hovered.tEmI=0.15; }
-    hovered=hs;
-    if(hovered&&!hovered.clicked){ hovered.tEm.set(0x00F5FF); hovered.tEmI=0.65; hovered.tScale=1.1; }
-    cvs.style.cursor=hovered?'pointer':'default';
+buildWF('wf1', [12,24,32,36,26,18,34,22,14,28,36,20]);
+buildWF('wf2', [26,16,34,20,28,36,14,24,30,18,28,12]);
+buildWF('wf3', [18,32,14,28,36,20,30,16,32,22,26,18]);
+
+/* ── 3. CANVAS 2D SCENE — 완전 자체 구현, CDN 없음 ── */
+var cvs = document.getElementById('bg-canvas');
+var ctx = cvs.getContext('2d');
+var W, H;
+
+function resize() {
+  W = cvs.width  = window.innerWidth;
+  H = cvs.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', function() { resize(); buildStones(); });
+
+/* 별 파티클 */
+var N_STARS = 2200;
+var stars = [];
+function initStars() {
+  stars = [];
+  for (var i = 0; i < N_STARS; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 0.25 + Math.random() * 0.8,
+      sp: 0.04 + Math.random() * 0.18,
+      op: 0.3 + Math.random() * 0.65
+    });
   }
-  orbit+=0.001;
-  camera.position.x=Math.sin(orbit)*5.2;
-  camera.position.z=Math.cos(orbit)*5.2;
-  camera.position.y=lerp(camera.position.y,-scrollProg*3.2,0.025);
-  camera.lookAt(0,-scrollProg*1.6,0);
-  pl1.position.x=3+Math.sin(t*0.38)*1.6; pl1.position.y=3+Math.cos(t*0.28)*1.1;
-  pl2.position.x=-3+Math.cos(t*0.42)*1.2;
-  renderer.render(scene,camera);
 }
-animate();
+initStars();
+
+/* 원석(Raw Stone) - 7개 Canvas 2D 불규칙 다각형 */
+var stoneData = [
+  {cx:0.18, cy:0.28, r:52, rot:0.4,  rs:0.0018, colA:'rgba(80,80,180,0.62)',  colB:'rgba(40,40,110,0.82)'},
+  {cx:0.82, cy:0.38, r:42, rot:1.2,  rs:-0.0022,colA:'rgba(60,60,160,0.58)',  colB:'rgba(30,30,90,0.80)'},
+  {cx:0.42, cy:0.18, r:58, rot:2.1,  rs:0.0015, colA:'rgba(90,80,200,0.55)',  colB:'rgba(50,40,130,0.78)'},
+  {cx:0.72, cy:0.70, r:36, rot:0.8,  rs:0.0026, colA:'rgba(50,70,160,0.60)',  colB:'rgba(25,35,100,0.80)'},
+  {cx:0.25, cy:0.75, r:62, rot:1.8,  rs:-0.0019,colA:'rgba(100,80,210,0.52)', colB:'rgba(55,40,140,0.76)'},
+  {cx:0.60, cy:0.52, r:46, rot:3.0,  rs:0.0021, colA:'rgba(70,90,180,0.50)',  colB:'rgba(38,48,115,0.78)'},
+  {cx:0.88, cy:0.20, r:38, rot:0.6,  rs:-0.0016,colA:'rgba(60,60,170,0.56)',  colB:'rgba(30,30,100,0.80)'}
+];
+var stones = [];
+function buildStones() {
+  stones = stoneData.map(function(d) {
+    /* 불규칙 꼭짓점 생성 (9~13각형) */
+    var pts = 9 + Math.floor(Math.random() * 5);
+    var verts = [];
+    for (var i = 0; i < pts; i++) {
+      var ang = (i / pts) * Math.PI * 2;
+      var rad = d.r * (0.7 + Math.random() * 0.52);
+      verts.push({ a: ang, r: rad });
+    }
+    return {
+      bx: d.cx, by: d.cy,
+      verts: verts, rot: d.rot, rs: d.rs,
+      colA: d.colA, colB: d.colB, baseR: d.r,
+      hovered: false, clicked: false,
+      emI: 0.0, tEmI: 0.0,
+      glowCol: 'rgba(90,92,255,',
+      floatPh: Math.random() * Math.PI * 2
+    };
+  });
+}
+buildStones();
+
+var scrollProg = 0;
+window.addEventListener('scroll', function() {
+  var tot = document.body.scrollHeight - window.innerHeight;
+  scrollProg = tot > 0 ? window.scrollY / tot : 0;
+});
+
+/* 마우스 / 터치 */
+var mx = -9999, my = -9999;
+window.addEventListener('mousemove', function(e) { mx = e.clientX; my = e.clientY; });
+window.addEventListener('touchmove', function(e) {
+  if (e.touches.length) { mx = e.touches[0].clientX; my = e.touches[0].clientY; }
+}, {passive: true});
+
+function hitTest(s) {
+  var cx = s.bx * W;
+  var cy = s.by * H + Math.sin(s.floatPh) * 14;
+  var dx = mx - cx, dy = my - cy;
+  return Math.sqrt(dx * dx + dy * dy) < s.baseR * 1.25;
+}
+
+window.addEventListener('click', function() {
+  stones.forEach(function(s) {
+    if (s.hovered) {
+      s.clicked = true;
+      s.tEmI = 1.0;
+      s.glowCol = 'rgba(248,243,43,';
+      var toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(function() { toast.classList.remove('show'); }, 2200);
+      setTimeout(function() {
+        s.clicked = false;
+        s.tEmI = 0.0;
+        s.glowCol = 'rgba(90,92,255,';
+      }, 900);
+    }
+  });
+});
+
+/* 불규칙 다각형 그리기 */
+function drawStone(s) {
+  var cx = s.bx * W;
+  var cy = s.by * H + Math.sin(s.floatPh) * 14;
+  var rot = s.rot;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+
+  /* 글로우 */
+  if (s.emI > 0.02) {
+    ctx.save();
+    ctx.shadowBlur = 40 + s.emI * 60;
+    ctx.shadowColor = s.glowCol + Math.min(s.emI, 1) + ')';
+    ctx.globalAlpha = s.emI * 0.5;
+    ctx.beginPath();
+    s.verts.forEach(function(v, i) {
+      var x = Math.cos(v.a) * v.r * 1.1;
+      var y = Math.sin(v.a) * v.r * 1.1;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = s.glowCol + (s.emI * 0.3) + ')';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /* 본체 그라디언트 */
+  var gr = ctx.createRadialGradient(0, -s.baseR * 0.3, 0, 0, 0, s.baseR);
+  gr.addColorStop(0, s.colA);
+  gr.addColorStop(1, s.colB);
+
+  ctx.beginPath();
+  s.verts.forEach(function(v, i) {
+    var x = Math.cos(v.a) * v.r;
+    var y = Math.sin(v.a) * v.r;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = gr;
+  ctx.fill();
+
+  /* 엣지 하이라이트 */
+  ctx.strokeStyle = s.hovered
+    ? 'rgba(0,245,255,0.55)'
+    : 'rgba(90,92,255,0.28)';
+  ctx.lineWidth = s.hovered ? 1.5 : 0.8;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/* 메인 애니메이션 루프 */
+var t = 0;
+var orb = 0;
+function loop() {
+  requestAnimationFrame(loop);
+  t += 0.016;
+  orb += 0.0008;
+
+  /* 배경 */
+  ctx.fillStyle = 'rgba(8,8,16,1)';
+  ctx.fillRect(0, 0, W, H);
+
+  /* 별 */
+  stars.forEach(function(s) {
+    s.y -= s.sp;
+    if (s.y < -2) s.y = H + 2;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,' + s.op + ')';
+    ctx.fill();
+  });
+
+  /* 스크롤에 따른 미묘한 오프셋 */
+  var camY = scrollProg * -80;
+
+  /* 원석 */
+  stones.forEach(function(s, i) {
+    s.rot += s.rs;
+    s.floatPh += 0.008 + i * 0.003;
+
+    /* 마우스 호버 */
+    s.hovered = hitTest(s);
+    if (s.hovered && !s.clicked) {
+      s.tEmI = 0.55;
+      s.glowCol = 'rgba(0,245,255,';
+    } else if (!s.clicked) {
+      s.tEmI = 0.0;
+      s.glowCol = 'rgba(90,92,255,';
+    }
+    s.emI += (s.tEmI - s.emI) * 0.08;
+
+    ctx.save();
+    ctx.translate(0, camY);
+    drawStone(s);
+    ctx.restore();
+  });
+
+  /* 커서 */
+  cvs.style.cursor = stones.some(function(s) { return s.hovered; }) ? 'pointer' : 'default';
+}
+loop();
+
+/* ── 4. SECTION INDICATOR ─────────────────────────── */
+var secEls = document.querySelectorAll('.sec');
+var dotRows = document.querySelectorAll('.dot-row');
+
+var io = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (!e.isIntersecting) return;
+    var id = e.target.id;
+    dotRows.forEach(function(d) {
+      d.classList.toggle('on', d.dataset.t === id);
+    });
+  });
+}, { threshold: 0.45 });
+secEls.forEach(function(s) { io.observe(s); });
+
+dotRows.forEach(function(d) {
+  d.addEventListener('click', function() {
+    var el = document.getElementById(d.dataset.t);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  });
+});
 </script>
 </body>
 </html>
